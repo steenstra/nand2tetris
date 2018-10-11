@@ -13,7 +13,7 @@ CHIP Or8Way {
     OUT out;
 
     PARTS:
-    // 
+    // boomstructuur 
 
     Or(a=in[0], b=in[1], out=or01);
     Or(a=in[2], b=in[3], out=or23);
