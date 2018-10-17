@@ -42,5 +42,42 @@ CHIP ALU {
         ng; // 1 if (out < 0),  0 otherwise
 
     PARTS:
-   // Put you code here:
+        // if zx, zero the input
+        Mux16(a=x, b=false, sel=zx, out=xzx);
+        Mux16(a=y, b=false, sel=zy, out=yzy);
+        
+        // negate
+        Not16(in=xzx, out=notxzx);
+        Not16(in=yzy, out=notyzy);
+
+        // if nx, negate
+        Mux16(a=xzx, b=notxzx, sel=nx, out=nxzx);
+        Mux16(a=yzy, b=notyzy, sel=ny, out=nyzy);
+
+        // AND
+        And16(a=nxzx, b=nyzy, out=andxy);
+        
+        // ADD
+        Add16(a=nxzx, b=nyzy, out=addxy);
+
+        // if f, ADD, else AND
+        Mux16(a=andxy, b=addxy, sel=f, out=fxy);
+
+        // negate
+        Not16(in=fxy, out=notfxy);
+
+        // if no, negate output
+        // out[15] is the bit that makes it negative
+        Mux16(a=fxy, b=notfxy, sel=no, out=out, out[15]=ng, out[0..7]=firstpart, out[8..15]=secondpart);
+
+        // zr - out == 0
+        Or8Way(in=firstpart, out=or8out1);
+        Or8Way(in=secondpart, out=or8out2);
+        Or(a=or8out1, b=or8out2, out=or16way);
+        Not(in=or16way, out=zr);
+
+       
+        
+
+
 }
