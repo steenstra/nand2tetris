@@ -12,3 +12,77 @@
 // the screen should remain fully clear as long as no key is pressed.
 
 // Put your code here.
+
+// Check eerst het toetsenbord
+(check_keyboard)
+@KBD
+D=M //D is nu de waarde van het toetsenbord
+
+@PaintItBlack
+D;JNE // als D niet 0 is, spring naar PiB
+
+@DreamingOfAWhiteChristmas
+0;JMP // anders spring naar PiW
+
+(PaintItBlack)
+@SCREEN // A is 16384
+D=A // D is de index genaamd screen
+
+@current // variabele current
+M=D // bewaar de positie op deze plek
+
+(zwart)
+@current
+A=M // zet A op de juiste plek, hierdoor verandert M
+M=-1 // maak deze reeks zwart
+
+@current
+M=M+1 // verhoog de waarde van current met 1
+
+@KBD
+D=A // bewaar 'einde van scherm' in D
+@current
+D=M-D; // neem het verschil tussen de huidige positie en het einde van het scherm
+@check_keyboard
+D;JEQ  // als dat verschil nul is, spring naar keyboardcheck
+@zwart
+0;JMP  // anders ga door met de loooooop
+
+
+
+(DreamingOfAWhiteChristmas)
+@SCREEN // A is 16384
+D=A // D is de index genaamd screen
+
+@current // variabele current
+M=D // bewaar de positie op deze plek
+
+(wit)
+@current
+A=M // zet A op de juiste plek, hierdoor verandert M
+M=0 // maak deze reeks zwart
+
+@current
+M=M+1 // verhoog de waarde van current met 1
+
+@KBD
+D=A // bewaar 'einde van scherm' in D
+@current
+D=M-D; // neem het verschil tussen de huidige positie en het einde van het scherm
+@check_keyboard
+D;JEQ  // als dat verschil nul is, spring naar keyboardcheck
+@wit
+0;JMP  // anders ga door met de loooooop
+
+
+
+
+@END
+0;JMP
+
+
+
+
+
+
+
