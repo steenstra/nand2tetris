@@ -39,5 +39,99 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
-}
+	
+	// if this is a C instruction ([15]=1)
+	// instruction[0]  JMP > Jump bit 1
+	// instruction[1]  JMP > Jump bit 2
+	// instruction[2]  JMP > Jump bit 3
+	// instruction[3]  DST > ALUtoM
+ 	// instruction[4]  DST > ALUtoD
+	// instruction[5]  DST > ALUtoA
+	// instruction[6]  ALU > no
+	// instruction[7]  ALU > f
+	// instruction[8]  ALU > ny
+	// instruction[9]  ALU > zy
+	// instruction[11] ALU > zx
+ 	// instruction[12] ALU > M to ALU
+	// instruction[13] ??
+	// instruction[14] ??
+	// instruction[15] OP code 
+	
+	
+	
+	
+	// is it A instruction?
+	Not(in=instruction[15], out=Ainstruction);
+	Not(in=Ainstruction, out=Cinstruction);
+	
+	And(a=Cinstruction, b=instruction[5], out=ALUtoA);
+	
+    // Mux16 1
+    Mux16(a=instruction, b=ALUout, sel=ALUtoA, out=AregIN);
+    
+    // A register
+	Or(a=Ainstruction, b=ALUtoA, out=AregLoad);
+    ARegister(in=AregIN, load=AregLoad, out=A, out[0..14]=addressM);
+    
+    // D register
+	And(a=Cinstruction, b=instruction[4], out=ALUtoD);
+    DRegister(in=ALUout, load=ALUtoD, out=DregOUT);
+
+
+    // Mux16 2
+    Mux16(a=A, b=inM, sel=instruction[12], out=AorinM);
+
+    // ALU
+    ALU(x=DregOUT, y=AorinM, zx=instruction[11], nx=instruction[10], zy=instruction[9], ny=instruction[8], f=instruction[7], no=instruction[6], out=ALUout, out=outM, zr=zrOUT, zr=zero, ng=negative, ng=ngOUT);
+
+	// JUMP bits:
+	// inst[2 1 0]
+	// jump 3 2 1 effect
+	// ==================
+	// null 0 0 0 no jump
+	//  JGT 0 0 1 if out>0 jump1
+	//  JEQ 0 1 0 if out=0 jump2
+	//  JGE 0 1 1 if out≥0 jump3
+	//  JLT 1 0 0 if out<0 jump4
+	//  JNE 1 0 1 if out≠0 jump5
+	//  JLE 1 1 0 if out≤0 jump6
+	//  JMP 1 1 1 unconditional jump7
+	
+	// ALU control bits:
+	// if (out == 0) then zero = 1, else zero = 0
+	// if (out  < 0) then negative = 1, else negative = 0
+	
+	// JGT == positive
+	// JEQ == zero
+	// JGE == positive or zero
+	
+	Not(in=negative, out=nng);
+	Not(in=zero, out=nzr);
+	And(a=nng, b=nzr, out=pos);
+
+	// C-instruction
+    And(a=instruction[15], b=instruction[0], out=jgt);
+    And(a=jgt, b=pos, out=jump1);
+
+    And(a=instruction[15], b=instruction[1], out=jeq);
+    And(a=jeq, b=zero, out=jump2);
+
+    And(a=instruction[15], b=instruction[2], out=jlt);
+    And(a=jlt, b=negative, out=jump3);
+
+    Or(a=jump1, b=jump2, out=jump4);
+    Or(a=jump3, b=jump4, out=jump);
+	
+	
+    // Program Counter
+	And(a=Cinstruction, b=jump, out=PCload);
+    PC(in=A, load=PCload, inc=true, reset=reset, out[0..14]=pc);
+    
+    // instruction[3]  DST > ALUtoM
+    And(a=Cinstruction, b=instruction[3], out=writeM);
+    
+    
+    
+    
+    }
+
